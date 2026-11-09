@@ -10,6 +10,14 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import org.example.dao.fcsv.*;
+import org.example.dao.fdat.DepartamentoDAOFB;
+import org.example.dao.fdat.EspacioDAOFB;
+import org.example.dao.fdat.ProfesorDAOFB;
+import org.example.dao.fdat.ReservaDAOFB;
+import org.example.dao.fjson.DepartamentoDAOFJS;
+import org.example.dao.fjson.EspacioDAOFJS;
+import org.example.dao.fjson.ProfesorDAOFJS;
+import org.example.dao.fjson.ReservaDAOFJS;
 import org.example.modelo.*;
 import org.example.servicio.CentroEducativo;
 
@@ -19,22 +27,38 @@ import java.time.LocalDate;
 public class MainFX extends Application {
     private final BorderPane root = new BorderPane();
     private CentroEducativo centro;
+    private String tipoFichero;
 
     public static void main(String[] args){ launch(args); }
 
     @Override public void start(Stage stage){
-//        try{
-//            centro=new CentroEducativo(new DepartamentoDAOCSV(),new ProfesorDAOCSV(),new EspacioDAOCSV(),new ReservaDAOCSV());
-//        }catch(IOException e){ mostrarError("Error al cargar los CSV",e.getMessage()); return; }
+        try{
+            centro = ficherosCSV(); tipoFichero = "CSV";
+            centro = ficherosDAT(); tipoFichero = "DAT";
+            centro = ficherosJSON(); tipoFichero = "JSON";
+            // Ahora mismo, el proyecto trabaja con JSON
+        } catch(IOException e){ mostrarError("Error al cargar los " + tipoFichero,e.getMessage()); return; }
         root.setTop(crearMenu()); root.setCenter(pantallaInicio());
         stage.setScene(new Scene(root,1100,680));
-        stage.setTitle("Gestión de reservas - Centro Educativo (CSV)");
+        stage.setTitle("Gestión de reservas - Centro Educativo (" + tipoFichero + ")");
         stage.show();
+    }
+
+    private CentroEducativo ficherosCSV() throws IOException {
+        return new CentroEducativo(new DepartamentoDAOCSV("csv/departamento.csv"), new ProfesorDAOCSV("csv/profesores.csv"), new EspacioDAOCSV("csv/espacios.csv"), new ReservaDAOCSV("csv/reserva.csv"));
+    }
+
+    private CentroEducativo ficherosDAT() throws IOException {
+        return new CentroEducativo(new DepartamentoDAOFB("dat/departamento.dat"), new ProfesorDAOFB("dat/profesores.dat"), new EspacioDAOFB("dat/espacios.dat"), new ReservaDAOFB("dat/reserva.dat"));
+    }
+
+    private CentroEducativo ficherosJSON() throws IOException {
+        return new CentroEducativo(new DepartamentoDAOFJS("json/departamento.json"),new ProfesorDAOFJS("json/profesores.json"),new EspacioDAOFJS("json/espacios.json"),new ReservaDAOFJS("json/reserva.json"));
     }
 
     private MenuBar crearMenu(){
         Menu archivo=new Menu("Archivo");
-        MenuItem guardar=new MenuItem("Guardar datos CSV"); guardar.setOnAction(e->guardarDatos());
+        MenuItem guardar=new MenuItem("Guardar datos " + tipoFichero); guardar.setOnAction(e->guardarDatos());
         MenuItem salir=new MenuItem("Salir"); salir.setOnAction(e->System.exit(0)); archivo.getItems().addAll(guardar,salir);
 
         Menu dep=new Menu("Departamentos");
@@ -58,7 +82,7 @@ public class MainFX extends Application {
     private VBox pantallaInicio(){
         VBox box=new VBox(12); box.setPadding(new Insets(30));
         Label t=new Label("GESTIÓN DE RESERVAS"); t.setStyle("-fx-font-size:28px;-fx-font-weight:bold;");
-        Label s=new Label("Fuente de datos: ficheros CSV"); s.setStyle("-fx-font-size:16px;");
+        Label s=new Label("Fuente de datos: ficheros " + tipoFichero); s.setStyle("-fx-font-size:16px;");
         box.getChildren().addAll(t,s,new Label("Utilice el menú para gestionar departamentos, profesores, espacios y reservas."));
         return box;
     }
@@ -88,7 +112,7 @@ public class MainFX extends Application {
         TableColumn<Profesor,String> id=new TableColumn<>("ID"); id.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getIdProfesor()));
         TableColumn<Profesor,String> nombre=new TableColumn<>("Nombre"); nombre.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getNombre()));
         TableColumn<Profesor,String> email=new TableColumn<>("Email"); email.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEmail()));
-        TableColumn<Profesor,String> dep=new TableColumn<>("Departamento"); dep.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getDepartamento()==null?"":d.getValue().getDepartamento().getNombre()));
+        TableColumn<Profesor,String> dep=new TableColumn<>("Departamento"); dep.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getIdDepartamento()==null?"":d.getValue().getIdDepartamento().getNombre()));
         tabla.getColumns().addAll(id,nombre,email,dep); cargar(tabla,centro.getProfesores());
         Button eliminar=new Button("Eliminar seleccionado");
        // eliminar.setOnAction(e->{Profesor p=tabla.getSelectionModel().getSelectedItem();if(p==null){mostrarError("Aviso","Seleccione un profesor.");return;}try{centro.bajaProfesor(p.getId());cargar(tabla,centro.getProfesores());}catch(Exception ex){mostrarError("No se puede eliminar",ex.getMessage());}});
@@ -109,7 +133,7 @@ public class MainFX extends Application {
         TableColumn<Espacio,String> nombre=new TableColumn<>("Nombre");nombre.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getNombre()));
         TableColumn<Espacio,String> tipo=new TableColumn<>("Tipo");tipo.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getTipo()));
         TableColumn<Espacio,Number> cap=new TableColumn<>("Capacidad");cap.setCellValueFactory(d->new SimpleIntegerProperty(d.getValue().getCapacidad()));
-        TableColumn<Espacio,String> disponible=new TableColumn<>("Disponible");disponible.setCellValueFactory(d->new SimpleStringProperty(d.getValue().isDisponible()?"Sí":"No"));
+        TableColumn<Espacio,String> disponible=new TableColumn<>("Disponible");disponible.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEstado().equals("DISPONIBLE")?"Sí":"No"));
         tabla.getColumns().addAll(id,nombre,tipo,cap,disponible);cargar(tabla,centro.getEspacios());
       Button cambiar=new Button("Cambiar disponibilidad");cambiar.setOnAction(e->{
           Espacio x=tabla.getSelectionModel().getSelectedItem();
@@ -133,8 +157,8 @@ public class MainFX extends Application {
         TableColumn<Reserva,String> id=new TableColumn<>("ID");id.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getIdReserva()));
         TableColumn<Reserva,String> fecha=new TableColumn<>("Fecha");fecha.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getFecha().toString()));
         TableColumn<Reserva,String> horario=new TableColumn<>("Horario");horario.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getHoraInicio()+" - "+d.getValue().getHoraFin()));
-        TableColumn<Reserva,String> profesor=new TableColumn<>("Profesor");profesor.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getProfesor().getNombre()));
-        TableColumn<Reserva,String> espacio=new TableColumn<>("Espacio");espacio.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEspacio().getNombre()));
+        TableColumn<Reserva,String> profesor=new TableColumn<>("Profesor");profesor.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getIdProfesor().getNombre()));
+        TableColumn<Reserva,String> espacio=new TableColumn<>("Espacio");espacio.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getIdEspacio().getNombre()));
         TableColumn<Reserva,Number> asistentes=new TableColumn<>("Asistentes");asistentes.setCellValueFactory(d->new SimpleIntegerProperty(d.getValue().getNumAsistentes()));
         TableColumn<Reserva,String> estado=new TableColumn<>("Estado");estado.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEstado().toString()));
         tabla.getColumns().addAll(id,fecha,horario,profesor,espacio,asistentes,estado);cargar(tabla,centro.getReservas());
@@ -164,7 +188,7 @@ public class MainFX extends Application {
     private VBox contenedor(String titulo,TableView<?> tabla,Button... botones){VBox b=new VBox(12);b.setPadding(new Insets(25));Label t=new Label(titulo);t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");HBox acciones=new HBox(10,botones);VBox.setVgrow(tabla,Priority.ALWAYS);b.getChildren().addAll(t,tabla,acciones);return b;}
     private VBox formulario(String titulo,Control[] controles,String[] etiquetas){VBox b=new VBox(10);b.setPadding(new Insets(30));Label t=new Label(titulo);t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");b.getChildren().add(t);for(int i=0;i<controles.length;i++){if(i<etiquetas.length)b.getChildren().add(new Label(etiquetas[i]));b.getChildren().add(controles[i]);}return b;}
     private TextField campo(String prompt){TextField f=new TextField();f.setPromptText(prompt);return f;}
-    private void guardarDatos(){try{centro.guardarTodo();mostrarInfo("Datos guardados correctamente en data/csv.");}catch(IOException e){mostrarError("Error al guardar",e.getMessage());}}
+    private void guardarDatos(){try{centro.guardarTodo();mostrarInfo("Datos guardados correctamente en " + tipoFichero);}catch(IOException e){mostrarError("Error al guardar",e.getMessage());}}
     private void mostrarInfo(String m){new Alert(Alert.AlertType.INFORMATION,m,ButtonType.OK).showAndWait();}
     private void mostrarError(String titulo,String m){new Alert(Alert.AlertType.ERROR,m==null?"Error desconocido":m,ButtonType.OK).showAndWait();}
 }
