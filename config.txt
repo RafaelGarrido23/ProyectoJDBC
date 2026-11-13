@@ -1,0 +1,5 @@
+# Archivo de configuración para la conexión a MariaDB
+# Modifica los valores según la configuración de tu servidor local o remoto
+url=jdbc:mariadb://localhost:3307/gestion_reservas_centro
+user=root
+password=alumno
