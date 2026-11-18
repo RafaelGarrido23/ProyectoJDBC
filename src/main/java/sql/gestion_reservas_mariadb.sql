@@ -147,7 +147,7 @@ BEGIN
     SELECT COUNT(*) INTO v_total
     FROM reservas
     WHERE id_profesor = p_id_profesor
-      AND estado <> 'CANCELADA';
+      AND estado <> 'Cancelado';
     RETURN v_total;
 END$$
 DELIMITER ;

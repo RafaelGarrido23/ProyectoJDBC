@@ -16,13 +16,16 @@ public class EspacioDAO {
                 "VALUES(?, ?, ?, ?, ?, ?, ?);";
 
         PreparedStatement pst = cn.prepareStatement(sql);
-        pst.setString(1, espacio.getIdEspacio());
+        // pst.setString(1, espacio.getIdEspacio()); --> Rafa
+        pst.setInt(1, Integer.parseInt(espacio.getIdEspacio())); // --> Pedro
         pst.setString(2, espacio.getNombre());
         pst.setString(3, espacio.getTipo());
         pst.setString(4, espacio.getUbicacion());
         pst.setInt(5, espacio.getCapacidad());
         pst.setString(6, espacio.getEquipamiento());
-        pst.setString(7, espacio.getDisponible());
+        // pst.setString(7, espacio.getDisponible());
+        pst.setBoolean(7, espacio.getDisponible().
+                equalsIgnoreCase("DISPONIBLE"));
 
         pst.execute();
     }
@@ -37,13 +40,17 @@ public class EspacioDAO {
 
         while (rs.next()) {
             Espacio e = new Espacio(
-                    rs.getString(1),
+                    // rs.getString(1), --> Rafa
+                    String.valueOf(rs.getInt(1)), // --> Pedro
                     rs.getString(2),
                     rs.getString(3),
                     rs.getString(4),
                     rs.getInt(5),
                     rs.getString(6),
-                    rs.getString(7)
+                    // rs.getString(7) --> Rafa
+                    rs.getBoolean(7)
+                            ? "DISPONIBLE"
+                            : "NO DISPONIBLE" // --> Pedro
             );
             espacios.add(e);
         }
@@ -66,8 +73,8 @@ public class EspacioDAO {
                 "WHERE id_espacio = ?";
 
         PreparedStatement pst = cn.prepareStatement(sql);
-        pst.setString(1, espacio.getIdEspacio()
-        );
+        // pst.setString(1, espacio.getIdEspacio()); --> Rafa
+        pst.setInt(1, Integer.parseInt(espacio.getIdEspacio())); // --> Pedro
 
         pst.execute();
     }
