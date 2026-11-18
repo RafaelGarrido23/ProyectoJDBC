@@ -1,24 +1,11 @@
 package servicio;
 
-import dao.DepartamentoDAO;
-import dao.EspacioDAO;
-import dao.ProfesorDAO;
-import dao.ReservaDAO;
-import dao.fdat.DepartamentoDAOFB;
-import dao.fdat.EspacioDAOFB;
-import dao.fdat.ProfesorDAOFB;
-import dao.fdat.ReservaDAOFB;
-import dao.fjson.DepartamentoDAOFJS;
-import dao.fjson.EspacioDAOFJS;
-import dao.fjson.ProfesorDAOFJS;
-import dao.fjson.ReservaDAOFJS;
+import dao.*;
 import modelo.*;
-import dao.fcsv.DepartamentoDAOCSV;
-import dao.fcsv.EspacioDAOCSV;
-import dao.fcsv.ProfesorDAOCSV;
-import dao.fcsv.ReservaDAOCSV;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class CentroEducativo {
@@ -33,46 +20,27 @@ public class CentroEducativo {
     private ArrayList<Espacio> espacios = new ArrayList<>();
     private ArrayList<Reserva> reservas = new ArrayList<>();
 
+    private ConexionBD conexionBD = new ConexionBD();
+    private final Connection cn = conexionBD.getConexion();
 
-    public CentroEducativo(DepartamentoDAOCSV departamentoDAOCSV, ProfesorDAOCSV profesorDAOCSV, EspacioDAOCSV espacioDAOCSV, ReservaDAOCSV reservaDAOCSV) throws IOException {
-        this.departamentoDAO = departamentoDAOCSV;
-        this.profesorDAO = profesorDAOCSV;
-        this.espacioDAO = espacioDAOCSV;
-        this.reservaDAO = reservaDAOCSV;
+
+    public CentroEducativo(DepartamentoDAO departamentoDAO, ProfesorDAO profesorDAO, EspacioDAO espacioDAO, ReservaDAO reservaDAO) throws IOException, SQLException {
+        this.departamentoDAO = departamentoDAO;
+        this.profesorDAO = profesorDAO;
+        this.espacioDAO = espacioDAO;
+        this.reservaDAO = reservaDAO;
         leerTodo();
     }
 
-    public CentroEducativo(DepartamentoDAOFB departamentoDAOFB, ProfesorDAOFB profesorDAOFB, EspacioDAOFB espacioDAOFB, ReservaDAOFB reservaDAOFB) throws IOException {
-        this.departamentoDAO = departamentoDAOFB;
-        this.profesorDAO = profesorDAOFB;
-        this.espacioDAO = espacioDAOFB;
-        this.reservaDAO = reservaDAOFB;
-        leerTodo();
-    }
+    public void leerTodo() throws SQLException {
 
-    public CentroEducativo(DepartamentoDAOFJS departamentoDAOFJS, ProfesorDAOFJS profesorDAOFJS, EspacioDAOFJS espacioDAOFJS, ReservaDAOFJS reservaDAOFJS) throws IOException {
-        this.departamentoDAO = departamentoDAOFJS;
-        this.profesorDAO = profesorDAOFJS;
-        this.espacioDAO = espacioDAOFJS;
-        this.reservaDAO = reservaDAOFJS;
-        leerTodo();
-    }
-
-    public void leerTodo() {
-        departamentos = departamentoDAO.leerFichero();
-        profesores = profesorDAO.leerFichero();
-        espacios = espacioDAO.leerFichero();
-        reservas = reservaDAO.leerFichero();
+        departamentos = departamentoDAO.obtenerDepartamento(cn);
+        profesores = profesorDAO.obtenerProfesores(cn);
+        espacios = espacioDAO.obtenerEspacios(cn);
+        reservas = reservaDAO.obtenerReservas(cn);
 
         asociarAProfesores();
         asociarAReservas();
-    }
-
-    public void guardarTodo() throws IOException{
-        departamentoDAO.escribirFichero(departamentos);
-        profesorDAO.escribirFichero(profesores);
-        espacioDAO.escribirFichero(espacios);
-        reservaDAO.escribirFichero(reservas);
     }
 
     public ArrayList<Departamento> getDepartamentos(){

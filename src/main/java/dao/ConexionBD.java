@@ -1,4 +1,4 @@
-package dao.fjdbc;
+package dao;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -47,7 +47,7 @@ public class ConexionBD {
             while ((linea = br.readLine()) != null) {
 
                 // Ignoramos líneas vacías o comentarios que comiencen por #
-                if (linea.trim().isEmpty() || linea.startsWith("#")) {
+                if (linea.trim().isEmpty() || linea.trim().startsWith("#")) {
                     continue;
                 }
 
@@ -76,7 +76,7 @@ public class ConexionBD {
     }
 
     public Connection getConexion() throws SQLException {
-        if (this.url == null || this.user == null) {
+        if (this.url == null || this.user == null || this.password == null) {
             throw new SQLException("No se han cargado los parámetros de conexión desde el fichero config.txt");
         }
         return DriverManager.getConnection(this.url, this.user, this.password);

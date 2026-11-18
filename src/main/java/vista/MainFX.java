@@ -1,17 +1,5 @@
 package vista;
 
-import dao.fcsv.DepartamentoDAOCSV;
-import dao.fcsv.EspacioDAOCSV;
-import dao.fcsv.ProfesorDAOCSV;
-import dao.fcsv.ReservaDAOCSV;
-import dao.fdat.DepartamentoDAOFB;
-import dao.fdat.EspacioDAOFB;
-import dao.fdat.ProfesorDAOFB;
-import dao.fdat.ReservaDAOFB;
-import dao.fjson.DepartamentoDAOFJS;
-import dao.fjson.EspacioDAOFJS;
-import dao.fjson.ProfesorDAOFJS;
-import dao.fjson.ReservaDAOFJS;
 import javafx.application.Application;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -31,39 +19,19 @@ import java.time.LocalTime;
 public class MainFX extends Application {
     private final BorderPane root = new BorderPane();
     private CentroEducativo centro;
-    private String tipoFichero;
 
     static void main(String[] args){ launch(args); }
 
     @Override public void start(Stage stage) throws IOException {
-        try{
-            centro = ficherosCSV(); tipoFichero = "CSV";
-            centro = ficherosDAT(); tipoFichero = "DAT";
-            centro = ficherosJSON(); tipoFichero = "JSON";
-            // Ahora mismo, el proyecto trabaja con JSON
-        } catch(IOException e){ mostrarError("Error al cargar los " + tipoFichero,e.getMessage()); return; }
         root.setTop(crearMenu()); root.setCenter(pantallaInicio());
         stage.setScene(new Scene(root,1100,680));
-        stage.setTitle("Gestión de reservas - Centro Educativo (" + tipoFichero + ")");
+        stage.setTitle("Gestión de reservas - Centro Educativo");
         stage.show();
-    }
-
-    private CentroEducativo ficherosCSV() throws IOException {
-        return new CentroEducativo(new DepartamentoDAOCSV("csv/departamento.csv"), new ProfesorDAOCSV("csv/profesores.csv"), new EspacioDAOCSV("csv/espacios.csv"), new ReservaDAOCSV("csv/reserva.csv"));
-    }
-
-    private CentroEducativo ficherosDAT() throws IOException {
-        return new CentroEducativo(new DepartamentoDAOFB("dat/departamento.dat"), new ProfesorDAOFB("dat/profesores.dat"), new EspacioDAOFB("dat/espacios.dat"), new ReservaDAOFB("dat/reserva.dat"));
-    }
-
-    private CentroEducativo ficherosJSON() throws IOException {
-        return new CentroEducativo(new DepartamentoDAOFJS("json/departamento.json"),new ProfesorDAOFJS("json/profesores.json"),new EspacioDAOFJS("json/espacios.json"),new ReservaDAOFJS("json/reserva.json"));
     }
 
     private MenuBar crearMenu(){
         Menu archivo=new Menu("Archivo");
-        MenuItem guardar=new MenuItem("Guardar datos " + tipoFichero); guardar.setOnAction(e->guardarDatos());
-        MenuItem salir=new MenuItem("Salir"); salir.setOnAction(e->System.exit(0)); archivo.getItems().addAll(guardar,salir);
+        MenuItem salir=new MenuItem("Salir"); salir.setOnAction(e->System.exit(0)); archivo.getItems().addAll(salir);
 
         Menu dep=new Menu("Departamentos");
         MenuItem ldep=new MenuItem("Listar"); ldep.setOnAction(e->root.setCenter(pantallaDepartamentos()));
@@ -86,7 +54,7 @@ public class MainFX extends Application {
     private VBox pantallaInicio(){
         VBox box=new VBox(12); box.setPadding(new Insets(30));
         Label t=new Label("GESTIÓN DE RESERVAS"); t.setStyle("-fx-font-size:28px;-fx-font-weight:bold;");
-        Label s=new Label("Fuente de datos: ficheros " + tipoFichero); s.setStyle("-fx-font-size:16px;");
+        Label s=new Label("Fuente de datos: Base de Datos MariaSQL"); s.setStyle("-fx-font-size:16px;");
         box.getChildren().addAll(t,s,new Label("Utilice el menú para gestionar departamentos, profesores, espacios y reservas."));
         return box;
     }
@@ -164,11 +132,12 @@ public class MainFX extends Application {
         TableColumn<Reserva,String> id=new TableColumn<>("ID");id.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getIdReserva()));
         TableColumn<Reserva,String> fecha=new TableColumn<>("Fecha");fecha.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getFecha().toString()));
         TableColumn<Reserva,String> horario=new TableColumn<>("Horario");horario.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getHoraInicio()+" - "+d.getValue().getHoraFin()));
-        TableColumn<Reserva,String> estado=new TableColumn<>("Estado");estado.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEstado().toString()));
         TableColumn<Reserva,String> profesor=new TableColumn<>("Profesor");profesor.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getProfesor().getNombre() + " " + d.getValue().getProfesor().getApellidos()));
         TableColumn<Reserva,String> espacio=new TableColumn<>("Espacio");espacio.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEspacio().getNombre()));
         TableColumn<Reserva,Number> asistentes=new TableColumn<>("Asistentes");asistentes.setCellValueFactory(d->new SimpleIntegerProperty(d.getValue().getNumAsistentes()));
-        tabla.getColumns().addAll(id,fecha,horario,estado,profesor,espacio,asistentes);cargar(tabla,centro.getReservas());
+        TableColumn<Reserva,String> estado=new TableColumn<>("Estado");estado.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEstado().toString()));
+        TableColumn<Reserva,String> motivo=new TableColumn<>("Motivo");motivo.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getMotivo()));
+        tabla.getColumns().addAll(id,fecha,horario,profesor,espacio,asistentes,estado,motivo);cargar(tabla,centro.getReservas());
         Button cancelar=new Button("Cancelar reserva seleccionada");
         cancelar.setOnAction(e->{
             Reserva r=tabla.getSelectionModel().getSelectedItem();
@@ -185,8 +154,9 @@ public class MainFX extends Application {
         TextField id=campo("ID"),inicio=campo("HH:mm"),fin=campo("HH:mm"),asist=campo("Número de asistentes");DatePicker fecha=new DatePicker(LocalDate.now());
         ComboBox<Profesor> profesor=new ComboBox<>(FXCollections.observableArrayList(centro.getProfesores()));
         ComboBox<Espacio> espacio=new ComboBox<>(FXCollections.observableArrayList(centro.getEspacios()));profesor.setMaxWidth(Double.MAX_VALUE);espacio.setMaxWidth(Double.MAX_VALUE);
+        TextField motivo=campo("Motivo");
         Button guardar=new Button("Crear reserva");guardar.setOnAction(e->{
-            try{centro.crearReserva(new Reserva(id.getText().trim(),fecha.getValue(),LocalTime.parse(inicio.getText().trim()), LocalTime.parse(fin.getText().trim()),profesor.getValue(),espacio.getValue(),Integer.parseInt(asist.getText().trim()),EstadoReserva.Confirmado));mostrarInfo("Reserva creada.");root.setCenter(pantallaReservas());}catch(Exception ex){mostrarError("No se puede crear la reserva",ex.getMessage());}
+            try{centro.crearReserva(new Reserva(id.getText().trim(),fecha.getValue(),LocalTime.parse(inicio.getText().trim()),LocalTime.parse(fin.getText().trim()),profesor.getValue(),espacio.getValue(),Integer.parseInt(asist.getText().trim()),EstadoReserva.Confirmado,motivo.getText()));mostrarInfo("Reserva creada.");root.setCenter(pantallaReservas());}catch(Exception ex){mostrarError("No se puede crear la reserva",ex.getMessage());}
         });
         VBox b=new VBox(10);b.setPadding(new Insets(30));Label t=new Label("NUEVA RESERVA");t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");b.getChildren().addAll(t,new Label("ID"),id,new Label("Fecha"),fecha,new Label("Profesor"),profesor,new Label("Espacio"),espacio,new Label("Hora inicio (HH:mm)"),inicio,new Label("Hora fin (HH:mm)"),fin,new Label("Asistentes"),asist,guardar);return b;
     }
@@ -195,7 +165,6 @@ public class MainFX extends Application {
     private VBox contenedor(String titulo,TableView<?> tabla,Button... botones){VBox b=new VBox(12);b.setPadding(new Insets(25));Label t=new Label(titulo);t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");HBox acciones=new HBox(10,botones);VBox.setVgrow(tabla,Priority.ALWAYS);b.getChildren().addAll(t,tabla,acciones);return b;}
     private VBox formulario(String titulo,Control[] controles,String[] etiquetas){VBox b=new VBox(10);b.setPadding(new Insets(30));Label t=new Label(titulo);t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");b.getChildren().add(t);for(int i=0;i<controles.length;i++){if(i<etiquetas.length)b.getChildren().add(new Label(etiquetas[i]));b.getChildren().add(controles[i]);}return b;}
     private TextField campo(String prompt){TextField f=new TextField();f.setPromptText(prompt);return f;}
-    private void guardarDatos(){try{centro.guardarTodo();mostrarInfo("Datos guardados correctamente en " + tipoFichero + ".");}catch(IOException e){mostrarError("Error al guardar",e.getMessage());}}
     public void mostrarInfo(String m){new Alert(Alert.AlertType.INFORMATION,m,ButtonType.OK).showAndWait();}
     public void mostrarError(String titulo,String m){new Alert(Alert.AlertType.ERROR,m==null?"Error desconocido":m,ButtonType.OK).showAndWait();}
 }
