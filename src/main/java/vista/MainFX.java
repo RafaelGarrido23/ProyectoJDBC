@@ -1,5 +1,9 @@
 package vista;
 
+import dao.DepartamentoDAO;
+import dao.EspacioDAO;
+import dao.ProfesorDAO;
+import dao.ReservaDAO;
 import javafx.application.Application;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -13,6 +17,7 @@ import modelo.*;
 import servicio.CentroEducativo;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -22,7 +27,10 @@ public class MainFX extends Application {
 
     static void main(String[] args){ launch(args); }
 
-    @Override public void start(Stage stage) throws IOException {
+    @Override public void start(Stage stage) throws IOException, SQLException {
+
+        centro = new CentroEducativo(new DepartamentoDAO(), new ProfesorDAO(), new EspacioDAO(), new ReservaDAO());
+
         root.setTop(crearMenu()); root.setCenter(pantallaInicio());
         stage.setScene(new Scene(root,1100,680));
         stage.setTitle("Gestión de reservas - Centro Educativo");
@@ -107,7 +115,7 @@ public class MainFX extends Application {
         TableColumn<Espacio,String> ubicacion=new TableColumn<>("Ubicación");ubicacion.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getUbicacion()));
         TableColumn<Espacio,Number> cap=new TableColumn<>("Capacidad");cap.setCellValueFactory(d->new SimpleIntegerProperty(d.getValue().getCapacidad()));
         TableColumn<Espacio,String> equip=new TableColumn<>("Equipamiento");equip.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEquipamiento()));
-        TableColumn<Espacio,String> disponible=new TableColumn<>("Disponible");disponible.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getDisponible().equals("DISPONIBLE")?"Sí":"No"));
+        TableColumn<Espacio,String> disponible=new TableColumn<>("Disponible");disponible.setCellValueFactory(d->new SimpleStringProperty(d.getValue().isDisponible() ? "Sí" : "No"));
         tabla.getColumns().addAll(id,nombre,tipo,ubicacion,cap,equip,disponible);cargar(tabla,centro.getEspacios());
         Button cambiar=new Button("Cambiar disponibilidad");cambiar.setOnAction(e->{
             Espacio x=tabla.getSelectionModel().getSelectedItem();
@@ -123,7 +131,7 @@ public class MainFX extends Application {
     private VBox pantallaAltaEspacio(){
         TextField id=campo("ID"),nombre=campo("Nombre"),tipo=campo("Tipo"),ubicacion=campo("Ubicación"),cap=campo("Capacidad"),equip=campo("Equipamiento");
         Button guardar=new Button("Guardar");
-        guardar.setOnAction(e->{try{centro.altaEspacio(new Espacio(id.getText().trim(),nombre.getText().trim(),tipo.getText().trim(),ubicacion.getText(),Integer.parseInt(cap.getText().trim()),equip.getText(),"DISPONIBLE"));mostrarInfo("Espacio creado.");root.setCenter(pantallaEspacios());}catch(Exception ex){mostrarError("Error",ex.getMessage());}});
+        guardar.setOnAction(e->{try{centro.altaEspacio(new Espacio(id.getText().trim(),nombre.getText().trim(),tipo.getText().trim(),ubicacion.getText(),Integer.parseInt(cap.getText().trim()),equip.getText(),true));mostrarInfo("Espacio creado.");root.setCenter(pantallaEspacios());}catch(Exception ex){mostrarError("Error",ex.getMessage());}});
         VBox b=new VBox(10);b.setPadding(new Insets(30));Label t=new Label("NUEVO ESPACIO");t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");b.getChildren().addAll(t,new Label("ID"),id,new Label("Nombre"),nombre,new Label("Tipo"),tipo,new Label("Ubicación"),ubicacion,new Label("Capacidad"),cap,new Label("Equipamiento"),equip, guardar);return b;
     }
 

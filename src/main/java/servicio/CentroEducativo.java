@@ -302,8 +302,9 @@ public class CentroEducativo {
     public void cambiarDisponibilidad(String id){
         Espacio espacio = buscarEspacioPorId(id);
 
-        if (espacio.getDisponible().equals("DISPONIBLE")) espacio.setDisponible("NO_DISPONIBLE");
-        else espacio.setDisponible("DISPONIBLE");
+        assert espacio != null;
+        if (espacio.isDisponible()) espacio.setDisponible(false);
+        else espacio.setDisponible(true);
     }
 
     private void validarEspacio(Espacio espacio) {
@@ -391,7 +392,7 @@ public class CentroEducativo {
         Espacio espacio = buscarEspacioPorId(nuevo.getEspacio().getIdEspacio());
         Profesor profesor = buscarProfesorPorId(nuevo.getProfesor().getIdProfesor());
 
-        if (!espacio.getDisponible().equals("DISPONIBLE")) {
+        if (!espacio.isDisponible()) {
             throw new IllegalArgumentException("El espacio no está disponible");
         }
 

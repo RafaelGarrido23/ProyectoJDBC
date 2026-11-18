@@ -16,8 +16,7 @@ public class DepartamentoDAO {
                 "VALUES(?, ?);";
 
         PreparedStatement pst = cn.prepareStatement(sql);
-        // pst.setString(1, departamento.getIdDepartamento()); --> Rafa
-        pst.setInt(1, Integer.parseInt(departamento.getIdDepartamento())); // --> Pedro
+        pst.setString(1, departamento.getIdDepartamento());
         pst.setString(2, departamento.getNombre());
         pst.execute();
     }
@@ -32,8 +31,7 @@ public class DepartamentoDAO {
 
         while (rs.next()) {
             Departamento d = new Departamento(
-                    // rs.getString(1), --> Rafa
-                    String.valueOf(rs.getInt(1)), // --> Pedro
+                    rs.getString(1),
                     rs.getString(2)
             );
             departamentos.add(d);
@@ -58,8 +56,7 @@ public class DepartamentoDAO {
                 "WHERE id_departamento = ?";
 
         PreparedStatement pst = cn.prepareStatement(sql);
-        // pst.setString(1, departamento.getIdDepartamento()); --> Rafa
-        pst.setInt(1, Integer.parseInt(departamento.getIdDepartamento())); // --> Pedro
+        pst.setString(1, departamento.getIdDepartamento());
         pst.execute();
     }
 }

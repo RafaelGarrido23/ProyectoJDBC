@@ -17,13 +17,11 @@ public class ProfesorDAO {
                 "VALUES(?, ?, ?, ?, ?);";
 
         PreparedStatement pst = cn.prepareStatement(sql);
-        // pst.setString(1, profesor.getIdProfesor()); --> Rafa
-        pst.setInt(1, Integer.parseInt(profesor.getIdProfesor())); // --> Pedro
+        pst.setString(1, profesor.getIdProfesor());
         pst.setString(2, profesor.getNombre());
         pst.setString(3, profesor.getApellidos());
         pst.setString(4, profesor.getEmail());
-        // pst.setString(5, profesor.getDepartamento().getIdDepartamento()); // --> Rafa
-        pst.setInt(5, Integer.parseInt(profesor.getDepartamento().getIdDepartamento())); // --> Pedro
+        pst.setString(5, profesor.getDepartamento().getIdDepartamento());
 
         pst.execute();
     }
@@ -37,16 +35,13 @@ public class ProfesorDAO {
         ArrayList<Profesor> profesores = new ArrayList<>();
 
         while (rs.next()) {
-            // Departamento departamento = new Departamento(rs.getString(5)); --> Rafa
-            Departamento departamento = new Departamento(String.valueOf(rs.getInt(5)));
+            Departamento departamento = new Departamento(rs.getString(5));
             Profesor p = new Profesor(
-                    // rs.getString(1), --> Rafa
-                    String.valueOf(rs.getInt(1)), // --> Pedro
+                    rs.getString(1),
                     rs.getString(2),
                     rs.getString(3),
                     rs.getString(4),
                     departamento
-
             );
             profesores.add(p);
         }
@@ -62,9 +57,7 @@ public class ProfesorDAO {
         pst.setString(1, profesor.getNombre());
         pst.setString(2, profesor.getApellidos());
         pst.setString(3, profesor.getEmail());
-        pst.setInt(4, Integer.parseInt(profesor.getDepartamento().getIdDepartamento())); // --> Pedro
-        // pst.setString(5, profesor.getDepartamento().getIdDepartamento()); --> Rafa
-        pst.setInt(5, Integer.parseInt(profesor.getIdProfesor())); // --> Pedro
+        pst.setString(4, profesor.getDepartamento().getIdDepartamento());
 
         pst.execute();
     }
@@ -74,8 +67,7 @@ public class ProfesorDAO {
                 "WHERE id_profesor = ?";
 
         PreparedStatement pst = cn.prepareStatement(sql);
-        // pst.setString(1, profesor.getIdProfesor()); --> Rafa
-        pst.setInt(1, Integer.parseInt(profesor.getIdProfesor())); // --> Pedro
+        pst.setString(1, profesor.getIdProfesor());
 
         pst.execute();
     }

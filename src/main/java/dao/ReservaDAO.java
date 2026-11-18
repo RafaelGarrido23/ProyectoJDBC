@@ -18,19 +18,16 @@ public class ReservaDAO {
                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
         PreparedStatement pst = cn.prepareStatement(sql);
-        // pst.setString(1, reserva.getIdReserva()); --> Rafa
-        pst.setInt(1, Integer.parseInt(reserva.getIdReserva())); // --> Pedro
+        pst.setString(1, reserva.getIdReserva());
         pst.setDate(2, Date.valueOf(reserva.getFecha()));
         pst.setTime(3, Time.valueOf(reserva.getHoraInicio()));
         pst.setTime(4, Time.valueOf(reserva.getHoraFin()));
-        // pst.setString(5, reserva.getProfesor().getIdProfesor()); --> Rafa
-        pst.setInt(5, Integer.parseInt(reserva.getProfesor().getIdProfesor())); // --> Pedro
-        // pst.setString(6, reserva.getEspacio().getIdEspacio()); --> Rafa
-        pst.setInt(6, Integer.parseInt(reserva.getEspacio().getIdEspacio())); // --> Pedro
+        pst.setString(5, reserva.getProfesor().getIdProfesor());
+        pst.setString(6, reserva.getEspacio().getIdEspacio());
         pst.setInt(7, reserva.getNumAsistentes());
-        pst.setString(8, String.valueOf(reserva.getEstado())); // --> Rafa
+        pst.setString(8, String.valueOf(reserva.getEstado()));
         // pst.setString(8, reserva.getEstado().name()); --> Pedro (alternativa)
-        pst.setString(9, reserva.getMotivo()); // --> Pedro
+        pst.setString(9, reserva.getMotivo());
 
         pst.execute();
     }
@@ -44,15 +41,12 @@ public class ReservaDAO {
         ArrayList<Reserva> reservas = new ArrayList<>();
 
         while (rs.next()) {
-            // Profesor profesor = new Profesor(rs.getString(5)); --> Rafa
-            // Espacio espacio = new Espacio(rs.getString(6)); --> Rafa
-            Profesor profesor = new Profesor(String.valueOf(rs.getInt(5))); // --> Pedro
-            Espacio espacio = new Espacio(String.valueOf(rs.getInt(6))); // --> Pedro
+            Profesor profesor = new Profesor(rs.getString(5));
+            Espacio espacio = new Espacio(rs.getString(6));
             EstadoReserva estadoReserva = EstadoReserva.valueOf(rs.getString(8));
 
             Reserva r = new Reserva(
-                    // rs.getString(1), // --> Rafa
-                    String.valueOf(rs.getInt(1)), // --> Pedro
+                    rs.getString(1),
                     rs.getDate(2).toLocalDate(),
                     rs.getTime(3).toLocalTime(),
                     rs.getTime(4).toLocalTime(),
@@ -76,10 +70,8 @@ public class ReservaDAO {
         pst.setDate(2, Date.valueOf(reserva.getFecha()));
         pst.setTime(3, Time.valueOf(reserva.getHoraInicio()));
         pst.setTime(4, Time.valueOf(reserva.getHoraFin()));
-        // pst.setString(5, reserva.getProfesor().getIdProfesor()); --> Rafa
-        // pst.setString(6, reserva.getEspacio().getIdEspacio()); --> Rafa
-        pst.setInt(5, Integer.parseInt(reserva.getProfesor().getIdProfesor())); // --> Pedro
-        pst.setInt(6, Integer.parseInt(reserva.getEspacio().getIdEspacio())); // --> Pedro
+        pst.setString(5, reserva.getProfesor().getIdProfesor());
+        pst.setString(6, reserva.getEspacio().getIdEspacio());
         pst.setInt(7, reserva.getNumAsistentes());
         pst.setString(8, String.valueOf(reserva.getEstado()));
 
@@ -91,8 +83,8 @@ public class ReservaDAO {
                 "WHERE id_reserva = ?";
 
         PreparedStatement pst = cn.prepareStatement(sql);
-        // pst.setString(1, reserva.getIdReserva()); --> Rafa
-        pst.setInt(1, Integer.parseInt(reserva.getIdReserva())); // --> Pedro
+        pst.setString(1, reserva.getIdReserva());
+        pst.setInt(1, Integer.parseInt(reserva.getIdReserva()));
 
         pst.execute();
     }

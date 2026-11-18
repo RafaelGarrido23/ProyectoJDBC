@@ -12,13 +12,13 @@ public class Espacio implements Serializable {
     private String ubicacion;
     private int capacidad;
     private String equipamiento;
-    private String disponible;
+    private boolean disponible;
 
     public Espacio(String idEspacio) {
         this.idEspacio = idEspacio;
     }
 
-    public Espacio(String idEspacio, String nombre, String tipo, String ubicacion, int capacidad, String equipamiento, String disponible) {
+    public Espacio(String idEspacio, String nombre, String tipo, String ubicacion, int capacidad, String equipamiento, boolean disponible) {
         this.idEspacio = idEspacio;
         this.nombre = nombre;
         this.tipo = tipo;
@@ -53,8 +53,8 @@ public class Espacio implements Serializable {
     public void setCapacidad(int capacidad) { this.capacidad = capacidad; }
 
     // Getter & Setter "Disponibilidad 'Espacio'"
-    public String getDisponible() { return disponible; }
-    public void setDisponible(String disponible) { this.disponible = disponible; }
+    public boolean isDisponible() { return disponible; }
+    public void setDisponible(boolean disponible) { this.disponible = disponible; }
 
     @Override
     public String toString() {
@@ -63,6 +63,6 @@ public class Espacio implements Serializable {
                 " | Tipo: " + tipo +
                 " | Ubicación: " + ubicacion +
                 " | Capacidad: " + capacidad +
-                " | Disponibilidad: " + disponible;
+                " | Disponibilidad: " + (disponible ? "DISPONIBLE" : "NO DISPONIBLE");
     }
 }
