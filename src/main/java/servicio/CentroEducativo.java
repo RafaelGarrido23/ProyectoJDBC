@@ -99,7 +99,9 @@ public class CentroEducativo {
         }
     }
 
-
+    public Connection getConexion() throws SQLException {
+        return cn;
+    }
 
     //***********************************************
     //

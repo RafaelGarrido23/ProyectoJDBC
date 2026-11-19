@@ -33,8 +33,9 @@ public class ReservaDAO {
     }
 
     public ArrayList<Reserva> obtenerReservas(Connection cn) throws SQLException {
-        String sql = "SELECT id_reserva, fecha, hora_inicio, hora_fin, id_profesor, id_espacio, numero_asistentes, estado, motivo\n" +
-                "FROM reservas";
+        String sql = "SELECT *\n" +
+                "FROM reservas\n" +
+                "ORDER BY id_reserva";
 
         PreparedStatement pst = cn.prepareStatement(sql);
         ResultSet rs = pst.executeQuery();

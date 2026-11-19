@@ -28,7 +28,8 @@ public class EspacioDAO {
 
     public ArrayList<Espacio> obtenerEspacios(Connection cn) throws SQLException {
         String sql = "SELECT *\n" +
-                "FROM espacios";
+                "FROM espacios\n" +
+                "ORDER BY id_espacio";
 
         PreparedStatement pst = cn.prepareStatement(sql);
         ResultSet rs = pst.executeQuery();

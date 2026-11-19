@@ -27,8 +27,9 @@ public class ProfesorDAO {
     }
 
     public ArrayList<Profesor> obtenerProfesores(Connection cn) throws SQLException {
-        String sql = "SELECT id_profesor, nombre, apellidos, email, id_departamento\n" +
-                "FROM profesores";
+        String sql = "SELECT *\n" +
+                "FROM profesores\n" +
+                "ORDER BY id_profesor";
 
         PreparedStatement pst = cn.prepareStatement(sql);
         ResultSet rs = pst.executeQuery();

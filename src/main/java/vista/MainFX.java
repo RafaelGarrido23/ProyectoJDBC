@@ -37,6 +37,13 @@ public class MainFX extends Application {
         stage.show();
     }
 
+    @Override
+    public void stop() throws SQLException {
+        if (centro.getConexion() != null) {
+            centro.getConexion().close();
+        }
+    }
+
     private MenuBar crearMenu(){
         Menu archivo=new Menu("Archivo");
         MenuItem salir=new MenuItem("Salir"); salir.setOnAction(e->System.exit(0)); archivo.getItems().addAll(salir);
@@ -115,7 +122,7 @@ public class MainFX extends Application {
         TableColumn<Espacio,String> ubicacion=new TableColumn<>("Ubicación");ubicacion.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getUbicacion()));
         TableColumn<Espacio,Number> cap=new TableColumn<>("Capacidad");cap.setCellValueFactory(d->new SimpleIntegerProperty(d.getValue().getCapacidad()));
         TableColumn<Espacio,String> equip=new TableColumn<>("Equipamiento");equip.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEquipamiento()));
-        TableColumn<Espacio,String> disponible=new TableColumn<>("Disponible");disponible.setCellValueFactory(d->new SimpleStringProperty(d.getValue().isDisponible() ? "Sí" : "No"));
+        TableColumn<Espacio,String> disponible=new TableColumn<>("Disponible");disponible.setCellValueFactory(d->new SimpleStringProperty(d.getValue().isDisponible()?"Sí":"No"));
         tabla.getColumns().addAll(id,nombre,tipo,ubicacion,cap,equip,disponible);cargar(tabla,centro.getEspacios());
         Button cambiar=new Button("Cambiar disponibilidad");cambiar.setOnAction(e->{
             Espacio x=tabla.getSelectionModel().getSelectedItem();
@@ -174,5 +181,5 @@ public class MainFX extends Application {
     private VBox formulario(String titulo,Control[] controles,String[] etiquetas){VBox b=new VBox(10);b.setPadding(new Insets(30));Label t=new Label(titulo);t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");b.getChildren().add(t);for(int i=0;i<controles.length;i++){if(i<etiquetas.length)b.getChildren().add(new Label(etiquetas[i]));b.getChildren().add(controles[i]);}return b;}
     private TextField campo(String prompt){TextField f=new TextField();f.setPromptText(prompt);return f;}
     public void mostrarInfo(String m){new Alert(Alert.AlertType.INFORMATION,m,ButtonType.OK).showAndWait();}
-    public void mostrarError(String titulo,String m){new Alert(Alert.AlertType.ERROR,m==null?"Error desconocido":m,ButtonType.OK).showAndWait();}
+    public void mostrarError(String titulo,String m){Alert alert = new Alert(Alert.AlertType.ERROR,m==null?"Error desconocido":m,ButtonType.OK);alert.setTitle(titulo);alert.setHeaderText("Se ha producido un error");alert.showAndWait();}
 }

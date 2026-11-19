@@ -22,8 +22,9 @@ public class DepartamentoDAO {
     }
 
     public ArrayList<Departamento> obtenerDepartamento(Connection cn) throws SQLException {
-        String sql = "SELECT id_departamento, nombre\n" +
-                "FROM departamentos";
+        String sql = "SELECT *\n" +
+                "FROM departamentos\n" +
+                "ORDER BY id_departamento";
 
         PreparedStatement pst = cn.prepareStatement(sql);
         ResultSet rs = pst.executeQuery();
