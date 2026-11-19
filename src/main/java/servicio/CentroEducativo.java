@@ -107,24 +107,34 @@ public class CentroEducativo {
     //
     //***********************************************
 
-    public void altaDepartamento(Departamento departamento){
+    public void altaDepartamento(Departamento departamento) throws SQLException{
         validarDepartamento(departamento);
 
         if ((buscarDepartamentoPorId(departamento.getIdDepartamento()) != null)){
             throw new IllegalArgumentException("Ya existe un departamento con ese ID");
         }
 
+        departamentoDAO.insertarDepartamento(departamento, cn); // --> Pedro
+
         departamentos.add(departamento);
     }
 
-    public void modificarDepartamento(Departamento modificado){
+    public void modificarDepartamento(Departamento modificado) throws SQLException{
         validarDepartamento(modificado);
 
-        Departamento departamento = buscarDepartamentoPorId(modificado.getIdDepartamento());
+        Departamento departamento =
+                buscarDepartamentoPorId(modificado.getIdDepartamento());
+
+        if(departamento == null){
+            throw new IllegalArgumentException("El departamento no existe");
+        }
+
+        departamentoDAO.modificarDepartamento(modificado, cn);
+
         departamento.setNombre(departamento.getNombre());
     }
 
-    public void bajaDepartamento(String id){
+    public void bajaDepartamento(String id) throws SQLException{
 
         if (id == null) {
             throw new IllegalArgumentException("El ID del departamento no puede ser nulo.");
@@ -151,6 +161,11 @@ public class CentroEducativo {
         } else {
             throw new IllegalArgumentException("El departamento con ID '" + idLimpio + "' no existe.");
         }
+
+        departamentoDAO.eliminarDepartamento(departamento, cn);
+
+        departamentos.remove(departamento);
+
     }
 
     public ArrayList<Departamento> consultarDepartamentos(){
@@ -186,20 +201,46 @@ public class CentroEducativo {
     //
     //***********************************************
 
-    public void altaProfesor(Profesor profesor){
+    public void altaProfesor(Profesor profesor) throws SQLException{
         validarProfesor(profesor);
 
         if ((buscarProfesorPorId(profesor.getIdProfesor()) != null)){
             throw new IllegalArgumentException("Ya existe un profesor con ese ID");
         }
 
+        // Comprobar que el departamento existe:
+        Departamento departamento = buscarDepartamentoPorId(profesor.getDepartamento().getIdDepartamento());
+
+        if (departamento == null){
+            throw new IllegalArgumentException("El departamento no existe");
+        }
+
+        profesor.setDepartamento(departamento);
+
+        profesorDAO.insertarProfesor(profesor, cn);
+
         profesores.add(profesor);
     }
 
-    public void modificarProfesor(Profesor modificado){
+    public void modificarProfesor(Profesor modificado) throws SQLException{
         validarProfesor(modificado);
 
         Profesor profesor = buscarProfesorPorId(modificado.getIdProfesor());
+
+        if(profesor == null){
+            throw new IllegalArgumentException("El profesor no existe");
+        }
+
+        Departamento departamento =
+                buscarDepartamentoPorId(profesor.getDepartamento().getIdDepartamento());
+
+        if(departamento == null){
+            throw new IllegalArgumentException("El departamento no existe");
+        }
+
+        modificado.setDepartamento(departamento);
+
+        profesorDAO.modificarProfesor(modificado, cn);
 
         profesor.setNombre(profesor.getNombre());
         profesor.setApellidos(profesor.getApellidos());
@@ -207,8 +248,14 @@ public class CentroEducativo {
         profesor.setDepartamento(profesor.getDepartamento());
     }
 
-    public void bajaProfesor(String id){
+    public void bajaProfesor(String id) throws SQLException{
         Profesor profesor = buscarProfesorPorId(id);
+
+        if(profesor == null){
+            throw new IllegalArgumentException("El profesor no existe");
+        }
+
+        profesorDAO.eliminarProfesor(profesor, cn);
 
         profesores.remove(profesor);
     }
@@ -263,28 +310,42 @@ public class CentroEducativo {
     //***********************************************
 
 
-    public void altaEspacio(Espacio espacio){
+    public void altaEspacio(Espacio espacio) throws SQLException{
         validarEspacio(espacio);
 
         if ((buscarEspacioPorId(espacio.getIdEspacio()) != null)){
             throw new IllegalArgumentException("Ya existe un espacio con ese ID");
         }
 
+        espacioDAO.insertarEspacio(espacio, cn);
+
         espacios.add(espacio);
     }
 
-    public void modificarEspacio(Espacio modificado){
+    public void modificarEspacio(Espacio modificado) throws SQLException{
         validarEspacio(modificado);
 
         Espacio espacio = buscarEspacioPorId(modificado.getIdEspacio());
+
+        if(espacio == null){
+            throw new IllegalArgumentException("El espacio no existe");
+        }
+
+        espacioDAO.modificarEspacio(modificado, cn);
 
         espacio.setNombre(espacio.getNombre());
         espacio.setTipo(espacio.getTipo());
         espacio.setCapacidad(espacio.getCapacidad());
     }
 
-    public void bajaEspacio(String id){
+    public void bajaEspacio(String id) throws SQLException{
         Espacio espacio = buscarEspacioPorId(id);
+
+        if(espacio == null){
+            throw new IllegalArgumentException("El espacio no existe");
+        }
+
+        espacioDAO.eliminarEspacio(espacio, cn);
 
         espacios.remove(espacio);
     }
@@ -305,6 +366,7 @@ public class CentroEducativo {
         assert espacio != null;
         if (espacio.isDisponible()) espacio.setDisponible(false);
         else espacio.setDisponible(true);
+
     }
 
     private void validarEspacio(Espacio espacio) {
