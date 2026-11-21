@@ -27,14 +27,37 @@ public class MainFX extends Application {
 
     static void main(String[] args){ launch(args); }
 
-    @Override public void start(Stage stage) throws IOException, SQLException {
+    @Override public void start(Stage stage){
 
-        centro = new CentroEducativo(new DepartamentoDAO(), new ProfesorDAO(), new EspacioDAO(), new ReservaDAO());
+        try {
 
-        root.setTop(crearMenu()); root.setCenter(pantallaInicio());
-        stage.setScene(new Scene(root,1100,680));
-        stage.setTitle("Gestión de reservas - Centro Educativo");
-        stage.show();
+            centro = new CentroEducativo(
+                    new DepartamentoDAO(),
+                    new ProfesorDAO(),
+                    new EspacioDAO(),
+                    new ReservaDAO()
+            );
+
+            root.setTop(crearMenu());
+            root.setCenter(pantallaInicio());
+
+            stage.setScene(new Scene(root, 1100, 680));
+
+            stage.setTitle(
+                    "Gestión de reservas - Centro Educativo"
+            );
+
+            stage.show();
+
+        } catch (SQLException | IOException e) {
+
+            mostrarError(
+                    "Error de conexión",
+                    "No se pudo iniciar la aplicación:\n"
+                            + e.getMessage()
+            );
+        }
+
     }
 
     @Override
@@ -103,7 +126,9 @@ public class MainFX extends Application {
         tabla.getColumns().addAll(id,nombre,email,dep); cargar(tabla,centro.getProfesores());
         Button eliminar=new Button("Eliminar seleccionado");
         eliminar.setOnAction(e->{Profesor p=tabla.getSelectionModel().getSelectedItem();if(p==null){mostrarError("Aviso","Seleccione un profesor.");return;}try{centro.bajaProfesor(p.getIdProfesor());cargar(tabla,centro.getProfesores());}catch(Exception ex){mostrarError("No se puede eliminar",ex.getMessage());}});
-        return contenedor("PROFESORES",tabla,eliminar);
+        Button contar = new Button("Contar reservas del profesor");
+        contar.setOnAction(e -> {Profesor p = tabla.getSelectionModel().getSelectedItem();if (p == null) {mostrarError("Aviso", "Seleccione un profesor.");return;}try {int total = centro.contarReservasProfesor(p.getIdProfesor());mostrarInfo("El profesor " + p.getNombre() + " " + p.getApellidos() + " tiene " + total + " reservas no canceladas.");} catch (Exception ex) {mostrarError("Error al contar reservas", ex.getMessage());}});
+        return contenedor("PROFESORES",tabla,eliminar,contar);
     }
 
     private VBox pantallaAltaProfesor(){
@@ -124,14 +149,8 @@ public class MainFX extends Application {
         TableColumn<Espacio,String> equip=new TableColumn<>("Equipamiento");equip.setCellValueFactory(d->new SimpleStringProperty(d.getValue().getEquipamiento()));
         TableColumn<Espacio,String> disponible=new TableColumn<>("Disponible");disponible.setCellValueFactory(d->new SimpleStringProperty(d.getValue().isDisponible()?"Sí":"No"));
         tabla.getColumns().addAll(id,nombre,tipo,ubicacion,cap,equip,disponible);cargar(tabla,centro.getEspacios());
-        Button cambiar=new Button("Cambiar disponibilidad");cambiar.setOnAction(e->{
-            Espacio x=tabla.getSelectionModel().getSelectedItem();
-            if(x==null){
-                mostrarError("Aviso","Seleccione un espacio.");
-                return;
-            }
-            centro.cambiarDisponibilidad(x.getIdEspacio());
-            tabla.refresh();});
+        Button cambiar = new Button("Cambiar disponibilidad");
+        cambiar.setOnAction(e -> {Espacio x = tabla.getSelectionModel().getSelectedItem();if (x == null) {mostrarError("Aviso", "Seleccione un espacio.");return;}try {centro.cambiarDisponibilidad(x.getIdEspacio());tabla.refresh();mostrarInfo("Disponibilidad actualizada.");} catch (Exception ex) {mostrarError("Error al cambiar disponibilidad", ex.getMessage());}});
         return contenedor("ESPACIOS",tabla,cambiar);
     }
 
@@ -160,8 +179,7 @@ public class MainFX extends Application {
                 mostrarError("Aviso","Seleccione una reserva.");
                 return;
             }
-            try{centro.cancelarReserva(r.getIdReserva());tabla.refresh();}catch(Exception ex){mostrarError("Error",ex.getMessage());}
-        });
+            try {centro.cancelarReserva(r.getIdReserva());tabla.refresh();mostrarInfo("Reserva cancelada correctamente.");} catch (Exception ex) {mostrarError("Error", ex.getMessage());}});
         return contenedor("RESERVAS",tabla,cancelar);
     }
 
@@ -173,7 +191,7 @@ public class MainFX extends Application {
         Button guardar=new Button("Crear reserva");guardar.setOnAction(e->{
             try{centro.crearReserva(new Reserva(id.getText().trim(),fecha.getValue(),LocalTime.parse(inicio.getText().trim()),LocalTime.parse(fin.getText().trim()),profesor.getValue(),espacio.getValue(),Integer.parseInt(asist.getText().trim()),EstadoReserva.Confirmado,motivo.getText()));mostrarInfo("Reserva creada.");root.setCenter(pantallaReservas());}catch(Exception ex){mostrarError("No se puede crear la reserva",ex.getMessage());}
         });
-        VBox b=new VBox(10);b.setPadding(new Insets(30));Label t=new Label("NUEVA RESERVA");t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");b.getChildren().addAll(t,new Label("ID"),id,new Label("Fecha"),fecha,new Label("Profesor"),profesor,new Label("Espacio"),espacio,new Label("Hora inicio (HH:mm)"),inicio,new Label("Hora fin (HH:mm)"),fin,new Label("Asistentes"),asist,guardar);return b;
+        VBox b=new VBox(10);b.setPadding(new Insets(30));Label t=new Label("NUEVA RESERVA");t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");b.getChildren().addAll(t,new Label("ID"),id,new Label("Fecha"),fecha,new Label("Profesor"),profesor,new Label("Espacio"),espacio,new Label("Hora inicio (HH:mm)"),inicio,new Label("Hora fin (HH:mm)"),fin,new Label("Asistentes"),new Label("Motivo"),motivo,asist,guardar);return b;
     }
 
     private <T> void cargar(TableView<T> tabla,java.util.List<T> datos){tabla.setItems(FXCollections.observableArrayList(datos));tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);}
