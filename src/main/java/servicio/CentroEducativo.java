@@ -40,6 +40,7 @@ public class CentroEducativo {
         espacios = espacioDAO.obtenerEspacios(cn);
         reservas = reservaDAO.obtenerReservasConJoin(cn);
         asociarAProfesores();
+        asociarAReservas();
     }
 
 
@@ -69,6 +70,33 @@ public class CentroEducativo {
             );
 
             profesor.setDepartamento(departamento);
+        }
+    }
+
+    private void asociarAReservas() {
+        for (Reserva reserva : reservas) {
+
+            if (reserva.getProfesor() != null) {
+                String idProfesor = reserva.getProfesor().getIdProfesor();
+
+                for (Profesor profesor : profesores) {
+                    if (profesor.getIdProfesor().equals(idProfesor)) {
+                        reserva.setProfesor(profesor);
+                        break;
+                    }
+                }
+            }
+
+            if (reserva.getEspacio() != null) {
+                String idEspacio = reserva.getEspacio().getIdEspacio();
+
+                for (Espacio espacio : espacios) {
+                    if (espacio.getIdEspacio().equals(idEspacio)) {
+                        reserva.setEspacio(espacio);
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -584,8 +612,7 @@ public class CentroEducativo {
             throws SQLException {
 
         if (buscarEspacioPorId(id) == null) {
-            throw new IllegalArgumentException(
-                    "El espacio no existe");
+            throw new IllegalArgumentException("El espacio no existe");
         }
 
         ArrayList<Reserva> resultado =
@@ -602,17 +629,11 @@ public class CentroEducativo {
         return resultado;
     }
 
-
-    public int contarReservasProfesor(String idProfesor)
-            throws SQLException {
+    public int contarReservasProfesor(String idProfesor) throws SQLException {
 
         if (buscarProfesorPorId(idProfesor) == null) {
-            throw new IllegalArgumentException(
-                    "El profesor no existe");
+            throw new IllegalArgumentException("El profesor no existe");
         }
-
         return reservaDAO.contarReservasProfesor(idProfesor, cn);
     }
-
-
 }

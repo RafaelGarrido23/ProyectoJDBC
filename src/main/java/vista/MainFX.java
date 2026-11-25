@@ -104,17 +104,41 @@ public class MainFX extends Application {
         tabla.getColumns().addAll(id,nombre); cargar(tabla,centro.getDepartamentos());
         Button eliminar=new Button("Eliminar seleccionado");
         eliminar.setOnAction(e->{ Departamento d=tabla.getSelectionModel().getSelectedItem(); if(d==null){mostrarError("Aviso","Seleccione un departamento.");return;} try{centro.bajaDepartamento(d.getIdDepartamento());cargar(tabla,centro.getDepartamentos());}catch(Exception ex){mostrarError("No se puede eliminar",ex.getMessage());}});
-        return contenedor("DEPARTAMENTOS",tabla,eliminar);
+        Button modificar=new Button("Modificar seleccionado");
+        modificar.setOnAction(e->{ Departamento d=tabla.getSelectionModel().getSelectedItem(); if(d==null){mostrarError("Aviso","Seleccione un departamento.");return;} try{root.setCenter(pantallaModificarDepartamento(d));}catch(Exception ex){mostrarError("No se puede modificar",ex.getMessage());}});
+        return contenedor("DEPARTAMENTOS",tabla,eliminar,modificar);
     }
 
     private VBox pantallaAltaDepartamento(){
         TextField id=campo("ID"), nombre=campo("Nombre"); Button guardar=new Button("Guardar");
         guardar.setOnAction(e->{
             try{
-                centro.altaDepartamento(new Departamento(id.getText().trim(),nombre.getText().trim()));mostrarInfo("Departamento creado.");root.setCenter(pantallaDepartamentos());}catch(Exception ex){mostrarError("Error",ex.getMessage());
+                centro.altaDepartamento(new Departamento(id.getText().trim(),nombre.getText().trim()));
+                mostrarInfo("Departamento creado.");
+                root.setCenter(pantallaDepartamentos());
+            } catch (Exception ex){
+                mostrarError("Error",ex.getMessage());
             }
         });
         return formulario("NUEVO DEPARTAMENTO",new Control[]{id,nombre,guardar},new String[]{"ID","Nombre"});
+    }
+
+    private VBox pantallaModificarDepartamento(Departamento d){
+        TextField nombre=campo("Nombre"); Button guardar=new Button("Guardar");
+        nombre.setText(d.getNombre());
+        nombre.positionCaret(nombre.getText().length());
+        guardar.setOnAction(e->{
+            try {
+                d.setNombre(nombre.getText().trim());
+                centro.modificarDepartamento(d);
+                mostrarInfo("Departamento modificado.");
+                nombre.setText(d.getNombre());
+                root.setCenter(pantallaDepartamentos());
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        return formulario("MODIFICAR DEPARTAMENTO",new Control[]{nombre,guardar},new String[]{"Nombre"});
     }
 
     private VBox pantallaProfesores(){
@@ -126,9 +150,11 @@ public class MainFX extends Application {
         tabla.getColumns().addAll(id,nombre,email,dep); cargar(tabla,centro.getProfesores());
         Button eliminar=new Button("Eliminar seleccionado");
         eliminar.setOnAction(e->{Profesor p=tabla.getSelectionModel().getSelectedItem();if(p==null){mostrarError("Aviso","Seleccione un profesor.");return;}try{centro.bajaProfesor(p.getIdProfesor());cargar(tabla,centro.getProfesores());}catch(Exception ex){mostrarError("No se puede eliminar",ex.getMessage());}});
+        Button modificar=new Button("Modificar seleccionado");
+        modificar.setOnAction(e->{ Profesor p=tabla.getSelectionModel().getSelectedItem(); if(p==null){mostrarError("Aviso","Seleccione un profesor.");return;} try{root.setCenter(pantallaModificarProfesor(p));}catch(Exception ex){mostrarError("No se puede modificar",ex.getMessage());}});
         Button contar = new Button("Contar reservas del profesor");
         contar.setOnAction(e -> {Profesor p = tabla.getSelectionModel().getSelectedItem();if (p == null) {mostrarError("Aviso", "Seleccione un profesor.");return;}try {int total = centro.contarReservasProfesor(p.getIdProfesor());mostrarInfo("El profesor " + p.getNombre() + " " + p.getApellidos() + " tiene " + total + " reservas no canceladas.");} catch (Exception ex) {mostrarError("Error al contar reservas", ex.getMessage());}});
-        return contenedor("PROFESORES",tabla,eliminar,contar);
+        return contenedor("PROFESORES",tabla,eliminar,modificar,contar);
     }
 
     private VBox pantallaAltaProfesor(){
@@ -137,6 +163,37 @@ public class MainFX extends Application {
         Button guardar=new Button("Guardar");
         guardar.setOnAction(e->{try{centro.altaProfesor(new Profesor(id.getText().trim(),nombre.getText().trim(),apellidos.getText(),email.getText().trim(),dep.getValue()));mostrarInfo("Profesor creado.");root.setCenter(pantallaProfesores());}catch(Exception ex){mostrarError("Error",ex.getMessage());}});
         VBox b=new VBox(10);b.setPadding(new Insets(30));Label t=new Label("NUEVO PROFESOR");t.setStyle("-fx-font-size:22px;-fx-font-weight:bold;");b.getChildren().addAll(t,new Label("ID"),id,new Label("Nombre"),nombre,new Label("Apellidos"),apellidos,new Label("Email"),email,new Label("Departamento"),dep,guardar);return b;
+    }
+
+    private VBox pantallaModificarProfesor(Profesor p){
+        TextField nombre=campo("Nombre"),apellidos=campo("apellidos"),email=campo("Email");
+        ComboBox<Departamento> pro=new ComboBox<>(FXCollections.observableArrayList(centro.getDepartamentos())); pro.setMaxWidth(Double.MAX_VALUE);
+        Button guardar=new Button("Guardar");
+        nombre.setText(p.getNombre());
+        nombre.positionCaret(nombre.getText().length());
+        apellidos.setText(p.getApellidos());
+        apellidos.positionCaret(apellidos.getText().length());
+        email.setText(p.getEmail());
+        email.positionCaret(email.getText().length());
+        pro.setValue(p.getDepartamento());
+        guardar.setOnAction(e->{
+            try {
+                p.setNombre(nombre.getText().trim());
+                p.setApellidos(apellidos.getText().trim());
+                p.setEmail(email.getText().trim());
+                p.setDepartamento(pro.getValue());
+                centro.modificarProfesor(p);
+                mostrarInfo("Profesor modificado.");
+                nombre.setText(p.getNombre());
+                apellidos.setText(p.getApellidos());
+                email.setText(p.getEmail());
+                pro.setValue(p.getDepartamento());
+                root.setCenter(pantallaDepartamentos());
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        return formulario("MODIFICAR PROFESOR",new Control[]{nombre,apellidos,email,pro,guardar},new String[]{"Nombre", "Apellidos", "Email", "Departamento"});
     }
 
     private VBox pantallaEspacios(){
