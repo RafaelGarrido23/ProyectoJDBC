@@ -140,11 +140,7 @@ public class CentroEducativo {
     public void bajaDepartamento(String id) throws SQLException{
 
         Departamento departamento = buscarDepartamentoPorId(id);
-
-        if (departamento == null) {
-            throw new IllegalArgumentException(
-                    "El departamento no existe");
-        }
+        validarDepartamento(departamento);
 
         boolean tieneProfesores = profesores.stream()
                 .anyMatch(p -> p.getDepartamento() != null
@@ -245,10 +241,7 @@ public class CentroEducativo {
 
     public void bajaProfesor(String id) throws SQLException{
         Profesor profesor = buscarProfesorPorId(id);
-
-        if (profesor == null) {
-            throw new IllegalArgumentException("El profesor no existe");
-        }
+        validarProfesor(profesor);
 
         boolean tieneReservas = reservas.stream()
                 .anyMatch(r -> r.getProfesor() != null
@@ -350,10 +343,7 @@ public class CentroEducativo {
 
     public void bajaEspacio(String id) throws SQLException{
         Espacio espacio = buscarEspacioPorId(id);
-
-        if (espacio == null) {
-            throw new IllegalArgumentException("El espacio no existe");
-        }
+        validarEspacio(espacio);
 
         boolean tieneReservas = reservas.stream()
                 .anyMatch(r -> r.getEspacio() != null
@@ -457,6 +447,44 @@ public class CentroEducativo {
 
     }
 
+    public void modificarReserva(Reserva modificado) throws SQLException{
+        validarReserva(modificado);
+
+        Reserva reserva = buscarReservaPorId(
+                modificado.getIdReserva());
+
+        if (reserva == null) {
+            throw new IllegalArgumentException("La reserva no existe");
+        }
+
+        Profesor profesor = buscarProfesorPorId(
+                modificado.getProfesor().getIdProfesor());
+
+        if (profesor == null) {
+            throw new IllegalArgumentException(
+                    "El profesor no existe");
+        }
+
+        Espacio espacio = buscarEspacioPorId(
+                modificado.getEspacio().getIdEspacio());
+
+        if (espacio == null) {
+            throw new IllegalArgumentException(
+                    "La reserva no existe");
+        }
+
+        modificado.setProfesor(profesor);
+        modificado.setEspacio(espacio);
+
+        reservaDAO.modificarReserva(modificado, cn);
+
+        reserva.setFecha(modificado.getFecha());
+        reserva.setHoraInicio(modificado.getHoraInicio());
+        reserva.setHoraFin(modificado.getHoraFin());
+        reserva.setProfesor(profesor);
+        reserva.setEspacio(espacio);
+    }
+
     public ArrayList<Reserva> consultarReservas(){
         return new ArrayList<>(reservas);
     }
@@ -491,6 +519,43 @@ public class CentroEducativo {
         return resultado;
     }
 
+    public void confirmarReserva(String id) throws SQLException {
+
+        Reserva reserva = buscarReservaPorId(id);
+
+        if (reserva == null) {
+            throw new IllegalArgumentException(
+                    "La reserva no existe");
+        }
+
+        if (reserva.getEstado() == EstadoReserva.Confirmado) {
+            throw new IllegalArgumentException(
+                    "La reserva ya está confirmada");
+        }
+
+        reservaDAO.cancelarReserva(id, cn);
+
+        reserva.setEstado(EstadoReserva.Confirmado);
+    }
+
+    public void finalizarReserva(String id) throws SQLException {
+
+        Reserva reserva = buscarReservaPorId(id);
+
+        if (reserva == null) {
+            throw new IllegalArgumentException(
+                    "La reserva no existe");
+        }
+
+        if (reserva.getEstado() == EstadoReserva.Finalizado) {
+            throw new IllegalArgumentException(
+                    "La reserva ya está finalizada");
+        }
+
+        reservaDAO.finalizarReserva(id, cn);
+
+        reserva.setEstado(EstadoReserva.Finalizado);
+    }
 
     public void cancelarReserva(String id) throws SQLException {
 
@@ -511,6 +576,14 @@ public class CentroEducativo {
         reserva.setEstado(EstadoReserva.Cancelado);
     }
 
+    public void eliminarReserva(String id) throws SQLException{
+        Reserva reserva = buscarReservaPorId(id);
+        validarReserva(reserva);
+
+        reservaDAO.eliminarReserva(reserva, cn);
+
+        reservas.remove(reserva);
+    }
 
     private void comprobarDisponibilidad(Reserva nuevo) {
         Espacio espacio = buscarEspacioPorId(nuevo.getEspacio().getIdEspacio());

@@ -65,7 +65,7 @@ public class ReservaDAO {
     }
 
     public void modificarReserva(Reserva reserva, Connection cn) throws SQLException {
-        String sql = "UPDATE reservas SET fecha = ?, hora_inicio = ?, hora_fin = ?, id_profesor = ?, id_espacio = ?, numero_asistentes = ?, estado = ?, motivo = ?\n" +
+        String sql = "UPDATE reservas SET fecha = ?, hora_inicio = ?, hora_fin = ?, id_profesor = ?, id_espacio = ?, numero_asistentes = ?, motivo = ?\n" +
                 "WHERE id_reserva = ?";
 
         try(PreparedStatement pst = cn.prepareStatement(sql)) {
@@ -78,6 +78,32 @@ public class ReservaDAO {
             pst.setString(7, reserva.getEstado().name());
             pst.setString(8, reserva.getMotivo());
             pst.setString(9, reserva.getIdReserva());
+            pst.execute();
+        }
+    }
+
+    public void confirmarReserva(String id, Connection cn)
+            throws SQLException {
+
+        String sql = "UPDATE reservas SET estado = ? " +
+                "WHERE id_reserva = ?";
+
+        try (PreparedStatement pst = cn.prepareStatement(sql)) {
+            pst.setString(1, EstadoReserva.Confirmado.name());
+            pst.setString(2, id);
+            pst.execute();
+        }
+    }
+
+    public void finalizarReserva(String id, Connection cn)
+            throws SQLException {
+
+        String sql = "UPDATE reservas SET estado = ? " +
+                "WHERE id_reserva = ?";
+
+        try (PreparedStatement pst = cn.prepareStatement(sql)) {
+            pst.setString(1, EstadoReserva.Finalizado.name());
+            pst.setString(2, id);
             pst.execute();
         }
     }
